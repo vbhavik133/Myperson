@@ -7,535 +7,222 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   :root {
-    --rose: #e8a0a8;
-    --deep: #c25e72;
-    --blush: #fce8ec;
-    --cream: #fdf6f0;
-    --ink: #3a2a2e;
-    --muted: #9e7c84;
-    --gold: #d4a85a;
+    --rose: #e8a0a8; --deep: #c25e72; --blush: #fce8ec;
+    --cream: #fdf6f0; --ink: #3a2a2e; --muted: #9e7c84; --gold: #d4a85a;
   }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--cream);
-    color: var(--ink);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* PAGE SYSTEM */
-  .page {
-    display: none;
-    min-height: 100vh;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1.5rem;
-    animation: fadeIn 0.6s ease;
-  }
+  .page { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1.5rem; animation: fadeIn 0.55s ease; }
   .page.active { display: flex; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .petal-bg { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .petal-bg span { position:absolute; border-radius:50% 0 50% 0; background:var(--blush); opacity:0.35; }
+  .petal-bg span:nth-child(1) { top:-40px; left:-30px; width:200px; height:200px; }
+  .petal-bg span:nth-child(2) { bottom:-50px; right:-40px; width:250px; height:250px; }
+  .petal-bg span:nth-child(3) { top:40%; left:-60px; width:140px; height:140px; opacity:.2; }
+  .petal-bg span:nth-child(4) { top:20%; right:-50px; width:160px; height:160px; opacity:.2; }
 
-  /* DECORATIVE BG PETALS */
-  .petal-bg {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
-  }
-  .petal-bg span {
-    position: absolute;
-    width: 120px; height: 120px;
-    border-radius: 50% 0 50% 0;
-    background: var(--blush);
-    opacity: 0.35;
-  }
-  .petal-bg span:nth-child(1) { top: -40px; left: -30px; width: 200px; height: 200px; }
-  .petal-bg span:nth-child(2) { bottom: -50px; right: -40px; width: 250px; height: 250px; }
-  .petal-bg span:nth-child(3) { top: 40%; left: -60px; width: 140px; height: 140px; opacity: 0.2; }
-  .petal-bg span:nth-child(4) { top: 20%; right: -50px; width: 160px; height: 160px; opacity: 0.2; }
+  .content { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; max-width:520px; width:100%; text-align:center; gap:1.4rem; }
 
-  .content {
-    position: relative; z-index: 1;
-    display: flex; flex-direction: column; align-items: center;
-    max-width: 520px; width: 100%; text-align: center;
-    gap: 1.4rem;
+  /* ── GIF circle ── */
+  .gif-ring {
+    width:200px; height:200px; border-radius:50%; overflow:hidden;
+    border:3px solid var(--rose); box-shadow:0 0 0 8px #fce8ec88;
+    background:var(--blush); flex-shrink:0;
+    transition:transform 0.3s ease, box-shadow 0.3s ease;
   }
+  .gif-ring:hover { transform:scale(1.05); box-shadow:0 0 0 14px #fce8ec55; }
+  .gif-ring img { width:200px; height:200px; object-fit:cover; display:block; }
 
-  /* IMAGE SLOT — replace GIF */
-  .img-slot {
-    width: 200px; height: 200px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid var(--rose);
-    background: var(--blush);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    gap: 0.4rem;
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0 0 8px #fce8ec88;
+  /* ── GIF wide banner ── */
+  .gif-banner {
+    width:100%; max-width:400px; height:240px; border-radius:20px;
+    overflow:hidden; border:3px solid var(--rose); background:var(--blush);
+    box-shadow:0 4px 24px #e8a0a822; transition:transform 0.3s ease;
   }
-  .img-slot:hover { transform: scale(1.04); box-shadow: 0 0 0 12px #fce8ec88; }
-  .img-slot img {
-    width: 100%; height: 100%; object-fit: cover;
-    position: absolute; inset: 0;
-  }
-  .img-slot .placeholder {
-    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
-  }
-  .img-slot .placeholder svg { opacity: 0.45; }
-  .img-slot .placeholder span {
-    font-size: 12px; color: var(--muted); font-family: 'DM Sans', sans-serif;
-  }
-  .img-slot input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .img-slot.has-img .placeholder { display: none; }
-  .img-slot.has-img input { z-index: 2; }
+  .gif-banner:hover { transform:scale(1.02); }
+  .gif-banner img { width:100%; height:240px; object-fit:cover; display:block; }
 
-  /* WIDE SLOT for love page */
-  .img-slot-wide {
-    width: 100%; max-width: 420px; height: 260px;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 3px solid var(--rose);
-    background: var(--blush);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    gap: 0.4rem;
-    cursor: pointer;
-    position: relative;
-    transition: transform 0.3s ease;
-  }
-  .img-slot-wide:hover { transform: scale(1.02); }
-  .img-slot-wide img {
-    width: 100%; height: 100%; object-fit: cover;
-    position: absolute; inset: 0;
-  }
-  .img-slot-wide .placeholder {
-    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
-  }
-  .img-slot-wide .placeholder svg { opacity: 0.45; }
-  .img-slot-wide .placeholder span {
-    font-size: 12px; color: var(--muted);
-  }
-  .img-slot-wide input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .img-slot-wide.has-img .placeholder { display: none; }
+  /* ── Typography ── */
+  h1 { font-family:'Cormorant Garamond',serif; font-size:clamp(1.8rem,5vw,2.5rem); font-weight:400; line-height:1.25; color:var(--ink); }
+  h2 { font-family:'Cormorant Garamond',serif; font-size:clamp(1.4rem,4vw,1.9rem); font-weight:300; font-style:italic; color:var(--deep); }
+  .tagline { font-size:13px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); font-weight:500; }
+  p { font-size:15px; line-height:1.78; color:#5a3d44; max-width:420px; }
 
-  /* TYPOGRAPHY */
-  h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.8rem, 5vw, 2.6rem);
-    font-weight: 400;
-    line-height: 1.2;
-    color: var(--ink);
-  }
-  h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.5rem, 4vw, 2rem);
-    font-weight: 300;
-    font-style: italic;
-    color: var(--deep);
-  }
-  .tagline {
-    font-size: 14px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 500;
-  }
-  p {
-    font-size: 15px;
-    line-height: 1.75;
-    color: #5a3d44;
-    max-width: 420px;
-  }
-  .small-note {
-    font-size: 12px;
-    color: var(--muted);
-    font-style: italic;
-  }
+  .divider { display:flex; align-items:center; gap:12px; width:100%; max-width:300px; }
+  .divider hr { flex:1; border:none; border-top:1px solid #e8cdd2; }
+  .divider span { color:var(--rose); font-size:16px; }
 
-  /* DIVIDER */
-  .divider {
-    display: flex; align-items: center; gap: 12px; width: 100%; max-width: 300px;
-  }
-  .divider hr { flex: 1; border: none; border-top: 1px solid #e8cdd2; }
-  .divider span { color: var(--rose); font-size: 18px; }
+  /* ── Buttons ── */
+  .btn-group { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .btn { padding:0.75rem 2.2rem; border-radius:100px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s ease; border:none; letter-spacing:0.04em; }
+  .btn-primary { background:var(--deep); color:white; box-shadow:0 4px 20px #c25e7244; }
+  .btn-primary:hover { background:#a34d60; transform:translateY(-1px); }
+  .btn-secondary { background:transparent; color:var(--deep); border:1.5px solid var(--rose); }
+  .btn-secondary:hover { background:var(--blush); transform:translateY(-1px); }
 
-  /* BUTTONS */
-  .btn-group { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .badge { background:white; border:1.5px solid var(--rose); border-radius:100px; padding:0.5rem 1.6rem; font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:var(--deep); letter-spacing:0.06em; }
 
-  .btn {
-    padding: 0.75rem 2.2rem;
-    border-radius: 100px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    letter-spacing: 0.04em;
-  }
-  .btn-primary {
-    background: var(--deep);
-    color: white;
-    box-shadow: 0 4px 20px #c25e7244;
-  }
-  .btn-primary:hover { background: #a34d60; transform: translateY(-1px); box-shadow: 0 6px 24px #c25e7255; }
+  audio { width:100%; max-width:280px; border-radius:100px; }
+  .audio-hint { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
 
-  .btn-secondary {
-    background: transparent;
-    color: var(--deep);
-    border: 1.5px solid var(--rose);
-  }
-  .btn-secondary:hover { background: var(--blush); transform: translateY(-1px); }
+  /* ── Love page ── */
+  .love-scroll { display:flex; flex-direction:column; align-items:center; gap:1.4rem; width:100%; max-width:520px; position:relative; z-index:1; }
+  .love-card { background:white; border-radius:20px; padding:1.6rem; border:1px solid #f5dde3; box-shadow:0 2px 24px #e8a0a818; text-align:left; width:100%; }
+  .love-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:600; color:var(--deep); margin-bottom:0.6rem; }
+  .love-card ul { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .love-card ul li { font-size:13.5px; color:#5a3d44; padding-left:1.2rem; position:relative; line-height:1.6; }
+  .love-card ul li::before { content:'♥'; position:absolute; left:0; color:var(--rose); font-size:10px; top:4px; }
 
-  /* AUDIO HINT */
-  .audio-hint {
-    font-size: 12px; color: var(--muted);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .audio-hint svg { flex-shrink: 0; }
+  .promises { background:var(--blush); border-radius:16px; padding:1.4rem; width:100%; }
+  .promises h3 { font-family:'Cormorant Garamond',serif; font-size:1.1rem; color:var(--deep); margin-bottom:0.8rem; font-weight:600; }
+  .promises ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
+  .promises ul li { font-size:13.5px; color:var(--ink); padding-left:1.4rem; position:relative; line-height:1.6; }
+  .promises ul li::before { content:'✦'; position:absolute; left:0; color:var(--gold); font-size:11px; top:3px; }
 
-  audio { width: 100%; max-width: 280px; border-radius: 100px; }
+  .name-stamp { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--deep); letter-spacing:0.08em; }
 
-  /* LOVE PAGE SPECIFIC */
-  .love-card {
-    background: white;
-    border-radius: 24px;
-    padding: 2rem;
-    box-shadow: 0 2px 30px #e8a0a822;
-    border: 1px solid #f5dde3;
-    text-align: left;
-    width: 100%;
-    max-width: 480px;
-  }
-  .love-card h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--deep);
-    margin-bottom: 0.6rem;
-  }
-  .love-card ul {
-    list-style: none;
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .love-card ul li {
-    font-size: 13.5px;
-    color: #5a3d44;
-    padding-left: 1.2rem;
-    position: relative;
-    line-height: 1.6;
-  }
-  .love-card ul li::before {
-    content: '♥';
-    position: absolute; left: 0;
-    color: var(--rose);
-    font-size: 10px;
-    top: 4px;
-  }
-
-  .promises {
-    background: var(--blush);
-    border-radius: 16px;
-    padding: 1.4rem;
-    width: 100%; max-width: 480px;
-  }
-  .promises h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    color: var(--deep);
-    margin-bottom: 0.8rem;
-    font-weight: 600;
-  }
-  .promises ul {
-    list-style: none;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  .promises ul li {
-    font-size: 13.5px;
-    color: var(--ink);
-    padding-left: 1.4rem;
-    position: relative;
-    line-height: 1.6;
-  }
-  .promises ul li::before {
-    content: '✦';
-    position: absolute; left: 0;
-    color: var(--gold);
-    font-size: 11px;
-    top: 3px;
-  }
-
-  .name-stamp {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 2rem;
-    font-weight: 300;
-    color: var(--deep);
-    letter-spacing: 0.08em;
-  }
-
-  /* NAMES BADGE */
-  .badge {
-    background: white;
-    border: 1.5px solid var(--rose);
-    border-radius: 100px;
-    padding: 0.5rem 1.6rem;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    color: var(--deep);
-    letter-spacing: 0.06em;
-  }
-
-  /* SCROLL inside love page */
-  .love-scroll {
-    display: flex; flex-direction: column; align-items: center; gap: 1.4rem;
-    width: 100%; max-width: 520px;
-  }
-
-  /* CONFETTI */
-  .confetti-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 99; }
-  .confetti-piece {
-    position: absolute;
-    width: 8px; height: 8px;
-    border-radius: 2px;
-    animation: fall linear forwards;
-  }
-  @keyframes fall {
-    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-  }
+  /* ── Confetti ── */
+  .confetti-wrap { position:fixed; inset:0; pointer-events:none; z-index:99; }
+  .confetti-piece { position:absolute; border-radius:2px; animation:fall linear forwards; }
+  @keyframes fall { 0% { transform:translateY(-10px) rotate(0deg); opacity:1; } 100% { transform:translateY(100vh) rotate(720deg); opacity:0; } }
 </style>
 </head>
 <body>
 
-<div class="petal-bg">
-  <span></span><span></span><span></span><span></span>
-</div>
-
+<div class="petal-bg"><span></span><span></span><span></span><span></span></div>
 <div class="confetti-wrap" id="confetti"></div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- PAGE 0 — HOME -->
-<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ HOME — "Are you excited for your birthday today?" ════════════
+     GIF: 3 kawaii cats with party hats celebrating — Happy Birthday! (KIKI)
+     Direct URL: media1.giphy.com — works in any browser offline/online
+══════════════════════════════════════════════════════════════════════════════ -->
 <div class="page active" id="page-home">
   <div class="content">
-
     <p class="tagline">A little something for you ✦</p>
-
-    <!-- IMAGE SLOT 1 (replaces home GIF) -->
-    <div class="img-slot" id="slot-home" onclick="triggerUpload('file-home')">
-      <input type="file" id="file-home" accept="image/*" onchange="loadImage(this,'slot-home')">
-      <div class="placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add your photo</span>
-      </div>
+    <div class="gif-ring">
+      <img src="https://media1.giphy.com/media/9rO5Aksmn0dHQKXJAu/giphy.gif" alt="Excited Birthday Cats" loading="lazy">
     </div>
-
     <h1>Are you excited for your birthday today? 🤗</h1>
-
     <div class="divider"><hr><span>♥</span><hr></div>
-
     <p>Bhavik is all yours!!</p>
-
     <div class="btn-group">
       <button class="btn btn-primary" onclick="showPage('page-yes'); launchConfetti()">Yes 🥰</button>
       <button class="btn btn-secondary" onclick="showPage('page-no1')">No 🙈</button>
     </div>
-
-    <div style="display:flex; flex-direction:column; align-items:center; gap:8px; width:100%;">
-      <audio controls id="bgAudio">
-        <source src="your-song.mp3" type="audio/mpeg">
-      </audio>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;">
+      <audio controls><source src="your-song.mp3" type="audio/mpeg"></audio>
       <span class="audio-hint">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        Please press play before selecting an option
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Press play before selecting an option
       </span>
     </div>
-
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- PAGE — NO 1 -->
-<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ NO 1 — "Do you feel extra special today?" ════════════
+     GIF: Mikitti cute birthday cat with confetti — joyful & kawaii
+══════════════════════════════════════════════════════════════════════ -->
 <div class="page" id="page-no1">
   <div class="content">
-
-    <p class="tagline">Hmm, let me ask again…</p>
-
-    <!-- IMAGE SLOT 2 -->
-    <div class="img-slot" id="slot-no1" onclick="triggerUpload('file-no1')">
-      <input type="file" id="file-no1" accept="image/*" onchange="loadImage(this,'slot-no1')">
-      <div class="placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add your photo</span>
-      </div>
+    <p class="tagline">Hmm, let me ask again… 🐾</p>
+    <div class="gif-ring">
+      <img src="https://media1.giphy.com/media/nAELLSB7jV0wVejr1h/giphy.gif" alt="Cute Birthday Kitty" loading="lazy">
     </div>
-
     <h1>Do you feel extra special today? ✨</h1>
-
     <div class="divider"><hr><span>♥</span><hr></div>
-
-    <p style="font-style:italic; color: var(--deep);">Mere hamesha khyal rakhunga.<br>Har kadam pe saath nibhavunga.</p>
-
+    <p style="font-style:italic;color:var(--deep);">Mere hamesha khyal rakhunga.<br>Har kadam pe saath nibhavunga.</p>
     <div class="btn-group">
       <button class="btn btn-primary" onclick="showPage('page-yes'); launchConfetti()">Yes 😍</button>
       <button class="btn btn-secondary" onclick="showPage('page-no2')">No 😅</button>
     </div>
-
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- PAGE — NO 2 -->
-<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ NO 2 — "Did you expect me to make your day memorable?" ════════════
+     GIF: Cute cat sorry / forgive me (Mino Games) — matches the pleading energy
+══════════════════════════════════════════════════════════════════════════════════ -->
 <div class="page" id="page-no2">
   <div class="content">
-
     <p class="tagline">Oh come on… 🥺</p>
-
-    <!-- IMAGE SLOT 3 -->
-    <div class="img-slot" id="slot-no2" onclick="triggerUpload('file-no2')">
-      <input type="file" id="file-no2" accept="image/*" onchange="loadImage(this,'slot-no2')">
-      <div class="placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add your photo</span>
-      </div>
+    <div class="gif-ring">
+      <img src="https://media2.giphy.com/media/6jjoSt6Ap2uRaync2J/giphy.gif" alt="Sorry Cute Cat" loading="lazy">
     </div>
-
     <h1>Did you expect me to make your day memorable? 😉😣</h1>
-
     <div class="divider"><hr><span>♥</span><hr></div>
-
     <p>Me hamesha tujse itna hi pyaar karunga 😣<br>Wanna have my 70–80 with you 💕</p>
-
     <div class="btn-group">
       <button class="btn btn-primary" onclick="showPage('page-yes'); launchConfetti()">Yes 💖</button>
       <button class="btn btn-secondary" onclick="showPage('page-no3')">No 😬</button>
     </div>
-
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- PAGE — NO 3 (last no, forces yes) -->
-<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ NO 3 — "Am I your favorite birthday gift?" ════════════
+     GIF: Cat surprise birthday box (Mino Games) — gift / surprise theme
+══════════════════════════════════════════════════════════════════════ -->
 <div class="page" id="page-no3">
   <div class="content">
-
     <p class="tagline">You have no choice 😄</p>
-
-    <!-- IMAGE SLOT 4 -->
-    <div class="img-slot" id="slot-no3" onclick="triggerUpload('file-no3')">
-      <input type="file" id="file-no3" accept="image/*" onchange="loadImage(this,'slot-no3')">
-      <div class="placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add your photo</span>
-      </div>
+    <div class="gif-ring">
+      <img src="https://media2.giphy.com/media/jA9De05ZgcgskYgtOs/giphy.gif" alt="Birthday Gift Cat" loading="lazy">
     </div>
-
     <h1>Am I your favorite birthday gift? 😄</h1>
-
     <div class="divider"><hr><span>♥</span><hr></div>
-
-    <p style="font-style:italic; color:var(--deep);">Tere paas aur koi raasta nhi hai…<br>I know tu mujhse hi shaadi karegi 😏</p>
-
+    <p style="font-style:italic;color:var(--deep);">Tere paas aur koi raasta nhi hai…<br>I know tu mujhse hi shaadi karegi 😏</p>
     <div class="btn-group">
       <button class="btn btn-primary" onclick="showPage('page-yes'); launchConfetti()">Yes! 🎉</button>
       <button class="btn btn-secondary" id="noBtn3" onmouseover="runAway(this)" ontouchstart="runAway(this)">No 😶</button>
     </div>
-
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- PAGE — YES -->
-<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ YES — "ufff I knew it! Happy 1st year" ════════════
+     GIF: Cuddle bear hug — warm couple bear embrace (tagged happy birthday wife)
+══════════════════════════════════════════════════════════════════════ -->
 <div class="page" id="page-yes">
   <div class="content">
-
     <p class="tagline">ufff, I knew it! 😘</p>
-
-    <!-- IMAGE SLOT 5 -->
-    <div class="img-slot" id="slot-yes" onclick="triggerUpload('file-yes')">
-      <input type="file" id="file-yes" accept="image/*" onchange="loadImage(this,'slot-yes')">
-      <div class="placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add your photo</span>
-      </div>
+    <div class="gif-ring">
+      <img src="https://media4.giphy.com/media/D1Q3Z6kaRDfZU5mNsr/giphy.gif" alt="Bear Couple Hug" loading="lazy">
     </div>
-
     <h2>Happy first year of togetherness, Chakudi 🥹</h2>
-
     <div class="divider"><hr><span>♥</span><hr></div>
-
     <p>
       I got my world. You are my home ®<br><br>
-      Today we complete <strong>1 year of togetherness.</strong> I am so happy to have you as my wife (Chakudi). 1st April 2023 — the day I first met you in real. I felt for you even before, but that first meeting, that first sound of your voice, your first touch, your first smile on my silly jokes, your first blush when I flirted with you… those butterflies are still there every time I see you. I feel lucky to have you. You are so adorable and beautiful, sometimes I feel — bhai yeh teri wife hai — and I smile with tears of joy.
+      Today we complete <strong>1 year of togetherness.</strong> I am so happy to have you as my wife (Chakudi).
+      1st April 2023 — the day I first met you in real. I felt for you even before, but that first meeting,
+      that first sound of your voice, your first touch, your first smile on my silly jokes, your first blush
+      when I flirted with you… those butterflies are still there every time I see you. I feel lucky to have you.
     </p>
-
-    <div class="badge">Bhavik & Amee ♥</div>
-
+    <div class="badge">Bhavik &amp; Amee ♥</div>
     <button class="btn btn-primary" onclick="showPage('page-love')">Our Love Journey →</button>
-
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════ -->
-<!-- PAGE — LOVE JOURNEY -->
-<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ════════════ LOVE JOURNEY — full letter ════════════
+     GIF wide: Loof & Timmy kawaii goodnight hug — romantic cozy couple
+     GIF circle: Loof & Timmy "I love you" hug — perfect for promises ending
+═══════════════════════════════════════════════════════ -->
 <div class="page" id="page-love">
   <div class="love-scroll">
-
     <p class="tagline">Our story ✦</p>
     <h1>I love you the most, always.</h1>
 
-    <!-- IMAGE SLOT 6 (wide) -->
-    <div class="img-slot-wide" id="slot-love" onclick="triggerUpload('file-love')">
-      <input type="file" id="file-love" accept="image/*" onchange="loadImage(this,'slot-love')">
-      <div class="placeholder">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add a special photo</span>
-      </div>
+    <div class="gif-banner">
+      <img src="https://media0.giphy.com/media/jXSMCVV0kSHr4bqxZM/giphy.gif" alt="Kawaii Love Hug" loading="lazy">
     </div>
 
     <p>
-      My Bacha — we completed our first year as a couple. Friends first, then best friends, then falling in love. Every little thing about you made me feel I'd found my better half. Someone as pure as a diamond by heart. When you breathe, pureness and kindness come along with you, and I fall for that harder. Uff.
+      My Bacha — we completed our first year as a couple. Friends first, then best friends, then falling in love.
+      Every little thing about you made me feel I'd found my better half — someone as pure as a diamond by heart.
+      When you breathe, pureness and kindness come along with you, and I fall for that harder. Uff.
     </p>
-
-    <p style="font-style:italic; color:var(--deep);">
-      Your outer beauty uff — I love everything about you. Your face, your lips, your ears, your cheeks, and most importantly — your nose 🥹
+    <p style="font-style:italic;color:var(--deep);">
+      Your outer beauty uff — I love everything about you. Your face, your lips, your ears, your cheeks,
+      and most importantly — your nose 🥹
     </p>
 
     <div class="love-card">
@@ -553,7 +240,9 @@
     </div>
 
     <p>
-      Weeks spent with you feel worth living — that's what makes me realize I'm so excited to live forever with you. I can write a 100-page book in detail about everything. Keeping it short — we as a couple have grown so much, and it feels complete being with each other.
+      Weeks spent with you feel worth living. I can write a 100-page book in detail about everything.
+      We as a couple have grown so much — it feels complete being with each other.
+      Looking forward to so many more memories and love in this journey of togetherness.
     </p>
 
     <div class="promises">
@@ -561,33 +250,21 @@
       <ul>
         <li>We are perfect for each other — I promise to make it wonderful and joyful</li>
         <li>I promise to always make you feel the luckiest girl in the world</li>
-        <li>I promise to fulfill every dream we have together</li>
+        <li>I promise to fulfill every dream we have together, Amee</li>
         <li>I will always protect you and stay by your side</li>
         <li>I will always love you the same, with all my heart — forever.</li>
       </ul>
     </div>
 
-    <!-- IMAGE SLOT 7 (final) -->
-    <div class="img-slot" id="slot-love2" onclick="triggerUpload('file-love2')">
-      <input type="file" id="file-love2" accept="image/*" onchange="loadImage(this,'slot-love2')">
-      <div class="placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c25e72" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
-        <span>Tap to add your photo</span>
-      </div>
+    <div class="gif-ring">
+      <img src="https://media1.giphy.com/media/y3VJB5ChUBHADR7Bg5/giphy.gif" alt="I Love You Hug" loading="lazy">
     </div>
 
-    <div class="name-stamp">Bhavik & Amee</div>
-    <p style="font-size:1.1rem; font-style:italic; color:var(--deep); font-family:'Cormorant Garamond',serif;">
+    <div class="name-stamp">Bhavik &amp; Amee</div>
+    <p style="font-size:1.1rem;font-style:italic;color:var(--deep);font-family:'Cormorant Garamond',serif;">
       I am All Yours and You are All Mine. We are forever here. ♥
     </p>
-
-    <button class="btn btn-secondary" onclick="showPage('page-home')" style="margin-bottom:2rem;">
-      ← Back to beginning
-    </button>
-
+    <button class="btn btn-secondary" onclick="showPage('page-home')" style="margin-bottom:2rem;">← Back to beginning</button>
   </div>
 </div>
 
@@ -595,55 +272,25 @@
   function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    window.scrollTo(0,0);
+    window.scrollTo(0, 0);
   }
-
-  function triggerUpload(inputId) {
-    document.getElementById(inputId).click();
-  }
-
-  function loadImage(input, slotId) {
-    if (!input.files || !input.files[0]) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const slot = document.getElementById(slotId);
-      let img = slot.querySelector('img');
-      if (!img) { img = document.createElement('img'); slot.appendChild(img); }
-      img.src = e.target.result;
-      slot.classList.add('has-img');
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-
   function launchConfetti() {
-    const colors = ['#e8a0a8','#c25e72','#fce8ec','#d4a85a','#f5dde3','#3a2a2e'];
+    const colors = ['#e8a0a8','#c25e72','#fce8ec','#d4a85a','#f5dde3','#a34d60'];
     const container = document.getElementById('confetti');
     container.innerHTML = '';
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 70; i++) {
       const el = document.createElement('div');
       el.className = 'confetti-piece';
-      el.style.cssText = `
-        left:${Math.random()*100}%;
-        top:-10px;
-        background:${colors[Math.floor(Math.random()*colors.length)]};
-        animation-duration:${1.2+Math.random()*1.6}s;
-        animation-delay:${Math.random()*0.8}s;
-        width:${6+Math.random()*6}px;
-        height:${6+Math.random()*6}px;
-        border-radius:${Math.random()>0.5?'50%':'3px'};
-      `;
+      el.style.cssText = `left:${Math.random()*100}%;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.2+Math.random()*1.8}s;animation-delay:${Math.random()*0.9}s;width:${6+Math.random()*6}px;height:${6+Math.random()*6}px;border-radius:${Math.random()>.5?'50%':'3px'};`;
       container.appendChild(el);
     }
-    setTimeout(() => container.innerHTML = '', 3500);
+    setTimeout(() => container.innerHTML = '', 3800);
   }
-
   function runAway(btn) {
-    const max = 120;
-    const x = (Math.random()-0.5)*max*2;
-    const y = (Math.random()-0.5)*max*2;
+    const x = (Math.random()-.5)*160, y = (Math.random()-.5)*160;
     btn.style.transition = 'transform 0.2s ease';
-    btn.style.transform = `translate(${x}px, ${y}px)`;
-    setTimeout(()=>{ btn.style.transform=''; }, 800);
+    btn.style.transform = `translate(${x}px,${y}px)`;
+    setTimeout(() => btn.style.transform = '', 900);
   }
 </script>
 </body>
