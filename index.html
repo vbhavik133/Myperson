@@ -85,14 +85,76 @@
   .confetti-wrap { position:fixed; inset:0; pointer-events:none; z-index:99; }
   .confetti-piece { position:absolute; border-radius:2px; animation:fall linear forwards; }
   @keyframes fall { 0% { transform:translateY(-10px) rotate(0deg); opacity:1; } 100% { transform:translateY(100vh) rotate(720deg); opacity:0; } }
+
+  /* ── Splash Screen ── */
+  #splash {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--cream);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1.6rem; cursor: pointer;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  #splash .splash-petals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  #splash .splash-petals span { position: absolute; border-radius: 50% 0 50% 0; background: var(--blush); }
+  #splash .splash-petals span:nth-child(1) { top:-50px; left:-40px; width:240px; height:240px; opacity:.5; }
+  #splash .splash-petals span:nth-child(2) { bottom:-60px; right:-50px; width:280px; height:280px; opacity:.5; }
+  #splash .splash-petals span:nth-child(3) { top:35%; left:-70px; width:160px; height:160px; opacity:.25; }
+  #splash .splash-petals span:nth-child(4) { top:15%; right:-60px; width:180px; height:180px; opacity:.25; }
+
+  #splash .splash-heart {
+    font-size: 3.5rem;
+    animation: heartbeat 1.4s ease-in-out infinite;
+  }
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+  }
+  #splash h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    font-weight: 400; color: var(--ink); line-height: 1.3;
+  }
+  #splash p {
+    font-size: 13px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  #splash .tap-btn {
+    margin-top: 0.4rem;
+    padding: 0.85rem 2.6rem;
+    border-radius: 100px;
+    background: var(--deep); color: white;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    border: none; cursor: pointer;
+    box-shadow: 0 4px 24px #c25e7244;
+    animation: pulse-btn 2s ease-in-out infinite;
+  }
+  @keyframes pulse-btn {
+    0%,100% { box-shadow: 0 4px 24px #c25e7244; transform: scale(1); }
+    50% { box-shadow: 0 6px 32px #c25e7266; transform: scale(1.03); }
+  }
+  #splash .note {
+    font-size: 11px; color: #c8a8b0;
+    letter-spacing: 0.08em;
+  }
 </style>
 </head>
 <body>
 
-<!-- Hidden autoplay audio — persists across all pages -->
-<audio id="bg-music" loop autoplay>
+<!-- Hidden audio -->
+<audio id="bg-music" loop>
   <source src="mysong.mp3" type="audio/mpeg">
 </audio>
+
+<!-- ════ SPLASH SCREEN ════ -->
+<div id="splash" onclick="enterSite()">
+  <div class="splash-petals"><span></span><span></span><span></span><span></span></div>
+  <div class="splash-heart">🎂</div>
+  <h1>Happy Birthday,<br>Rutvi ♥</h1>
+  <p>A little surprise is waiting for you</p>
+  <button class="tap-btn">Tap to Open ✨</button>
+  <span class="note">🎵 with love &amp; music</span>
+</div>
 
 <div class="petal-bg"><span></span><span></span><span></span><span></span></div>
 <div class="confetti-wrap" id="confetti"></div>
@@ -234,25 +296,18 @@ Uff… ❤️
     <button class="btn btn-secondary" onclick="showPage('page-home')" style="margin-bottom:2rem;">← Back to beginning</button>
   </div>
 </div>
-
 <script>
-  // ── Autoplay audio with fallback for browsers that block autoplay ──
   const music = document.getElementById('bg-music');
 
-  function tryPlay() {
-    music.play().catch(() => {
-      // Browser blocked autoplay — play on first user interaction instead
-      document.addEventListener('click', () => music.play(), { once: true });
-      document.addEventListener('touchstart', () => music.play(), { once: true });
-    });
+  function enterSite() {
+    music.play().catch(() => {});
+    document.getElementById('splash').classList.add('hidden');
   }
-  tryPlay();
 
   function showPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
-    // Keep music playing when navigating between pages
     if (music.paused) music.play().catch(() => {});
   }
 
